@@ -71,7 +71,7 @@ public class CompilationUnitFactory implements ICompilationUnitFactory {
 		}
 
 		if (classLoader == null) {
-			classLoader = new GroovyClassLoader(ClassLoader.getSystemClassLoader().getParent(), config, true);
+			classLoader = new GroovyClassLoader(ClassLoader.getSystemClassLoader(), config, true);
 		}
 
 		Set<URI> changedUris = fileContentsTracker.getChangedURIs();

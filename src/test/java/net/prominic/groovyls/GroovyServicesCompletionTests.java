@@ -22,6 +22,7 @@ package net.prominic.groovyls;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -63,8 +64,8 @@ class GroovyServicesCompletionTests {
 		if (!Files.exists(srcRoot)) {
 			srcRoot.toFile().mkdirs();
 		}
-
-		services = new GroovyServices(new CompilationUnitFactory());
+		CompilationUnitFactory cu = new CompilationUnitFactory();
+		services = new GroovyServices(cu);
 		services.setWorkspaceRoot(workspaceRoot);
 		services.connect(new LanguageClient() {
 
@@ -159,6 +160,7 @@ class GroovyServicesCompletionTests {
 		Path filePath = srcRoot.resolve("Completion.groovy");
 		String uri = filePath.toUri().toString();
 		StringBuilder contents = new StringBuilder();
+		contents.append("class Completion {\n");
 		contents.append("class Completion {\n");
 		contents.append("  String memberVar\n");
 		contents.append("  public Completion() {\n");
@@ -330,9 +332,10 @@ class GroovyServicesCompletionTests {
 		Path filePath = srcRoot.resolve("Completion.groovy");
 		String uri = filePath.toUri().toString();
 		StringBuilder contents = new StringBuilder();
+		contents.append("import net.prominic.groovyls.Groovy\n");
 		contents.append("class Completion {\n");
 		contents.append("  public Completion() {\n");
-		contents.append("    String localVar\n");
+		contents.append("    net.prominic.groovyls.GroovyLanguageServer localVar\n");
 		contents.append("    localVar.\n");
 		contents.append("    method()\n");
 		contents.append("  }\n");
@@ -340,15 +343,17 @@ class GroovyServicesCompletionTests {
 		TextDocumentItem textDocumentItem = new TextDocumentItem(uri, LANGUAGE_GROOVY, 1, contents.toString());
 		services.didOpen(new DidOpenTextDocumentParams(textDocumentItem));
 		TextDocumentIdentifier textDocument = new TextDocumentIdentifier(uri);
-		Position position = new Position(3, 13);
+		Position position = new Position(0, 35);
 		Either<List<CompletionItem>, CompletionList> result = services
 				.completion(new CompletionParams(textDocument, position)).get();
 		Assertions.assertTrue(result.isLeft());
 		List<CompletionItem> items = result.getLeft();
 		Assertions.assertTrue(items.size() > 0);
 		List<CompletionItem> filteredItems = items.stream().filter(item -> {
+			System.out.println(item.toString());
 			return item.getLabel().equals("charAt") && item.getKind().equals(CompletionItemKind.Method);
 		}).collect(Collectors.toList());
+
 		Assertions.assertEquals(1, filteredItems.size());
 	}
 
